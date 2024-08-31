@@ -7,44 +7,44 @@ import (
 	"net/http"
 )
 
-func signUp(context *gin.Context) {
+func signUp(c *gin.Context) {
 	var user models.User
 
-	err := context.ShouldBind(&user)
+	err := c.ShouldBind(&user)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "could not parse data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not parse data"})
 		return
 	}
 
 	err = user.Save()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "could not save user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save user"})
 		return
 	}
 
-	context.JSON(http.StatusCreated, gin.H{"user": user})
+	c.JSON(http.StatusCreated, gin.H{"user": user})
 }
 
-func login(context *gin.Context) {
+func login(c *gin.Context) {
 	var user models.User
 
-	err := context.ShouldBind(&user)
+	err := c.ShouldBind(&user)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "could not parse data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not parse data"})
 		return
 	}
 
 	err = user.ValidateCredentials()
 	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
 	token, err := utils.GenerateToken(user.Email, user.ID)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"message": "log in successful", "token": token})
+	c.JSON(http.StatusOK, gin.H{"message": "log in successful", "token": token})
 }
