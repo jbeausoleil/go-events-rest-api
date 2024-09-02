@@ -2,6 +2,7 @@ package routes
 
 import (
 	"example.com/rest-api/models"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -42,8 +43,9 @@ func createEvent(c *gin.Context) {
 		return
 	}
 
-	userId := c.GetInt64("userID")
+	userId := c.GetInt64("userId")
 	event.UserID = userId
+	fmt.Println(userId)
 
 	err = event.Save()
 	if err != nil {
@@ -61,9 +63,15 @@ func updateEvent(c *gin.Context) {
 		return
 	}
 
-	_, err = models.QueryEventById(eventId)
+	userId := c.GetInt64("userId")
+	event, err := models.QueryEventById(eventId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch event"})
+		return
+	}
+
+	if event.UserID != userId {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "you do not have permission to update this event"})
 		return
 	}
 
@@ -91,9 +99,15 @@ func deleteEvent(c *gin.Context) {
 		return
 	}
 
+	userId := c.GetInt64("userId")
 	event, err := models.QueryEventById(eventId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch event"})
+		return
+	}
+
+	if userId != event.UserID {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "you do not have permission to delete this event"})
 		return
 	}
 
